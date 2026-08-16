@@ -13,4 +13,6 @@
 .vscode/
 .DS_Store
 
+# Local override files
+config/
 app-boot/src/main/resources/application-local.yml.override
