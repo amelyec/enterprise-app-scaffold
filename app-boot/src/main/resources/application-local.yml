@@ -1,0 +1,20 @@
+# LOCAL — for running on a developer's own machine (e.g. against docker-compose Postgres).
+# Safe to commit sane local defaults here since nothing sensitive should ever live in it;
+# if you need to override something personal (a different port, a personal API key), create
+# application-local.yml.override locally and add it to .gitignore instead of editing this file.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:enterprise_app_local}
+    username: ${DB_USERNAME:enterprise_app}
+    password: ${DB_PASSWORD:enterprise_app}
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    co.tz.werelay: DEBUG
+
+app:
+  cors:
+    allowed-origins: "http://localhost:3000"

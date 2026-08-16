@@ -1,0 +1,10 @@
+**/target/
+**/*.md
+.idea/
+*.iml
+docker-compose.yml
+docs/
+# NOTE: .git/ is intentionally NOT ignored — git-commit-id-maven-plugin needs it
+# during `docker build` to embed commit hash/branch into /actuator/info. It's only
+# read during the build stage and never copied into the runtime image (see Dockerfile).
+.github/

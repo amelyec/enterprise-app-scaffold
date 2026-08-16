@@ -1,0 +1,24 @@
+# DEV — deploys automatically on every merge to `develop`.
+# Verbose logging and relaxed CORS are fine here; never copy these defaults into uat/prod.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:enterprise_app_dev}
+    username: ${DB_USERNAME:enterprise_app}
+    password: ${DB_PASSWORD:}
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    co.tz.werelay: DEBUG
+    org.hibernate.SQL: DEBUG
+
+app:
+  cors:
+    allowed-origins: "*"
+
+management:
+  endpoint:
+    health:
+      show-details: always

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>co.tz.werelay</groupId>
+    <artifactId>enterprise-app</artifactId>
+    <!--
+        VERSIONING CONVENTION (see README.md #versioning):
+        - `develop` branch always carries a "-SNAPSHOT" suffix.
+        - When a `release/x.y.0` branch is cut, CI strips "-SNAPSHOT" for the release build.
+        - On merge to `main`, CI tags the commit `v${project.version}` automatically — never tag by hand.
+        - Bump this version via CI/release tooling, not by hand-editing every module.
+    -->
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>enterprise-app</name>
+    <description>Enterprise Spring Boot template — modular monolith, cloud/container/microservice ready</description>
+
+    <modules>
+        <module>app-common</module>
+        <module>app-domain</module>
+        <module>app-persistence</module>
+        <module>app-service</module>
+        <module>app-api</module>
+        <module>app-config</module>
+        <module>app-boot</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
+        <springdoc.version>2.6.0</springdoc.version>
+        <logstash-encoder.version>7.4</logstash-encoder.version>
+        <git-commit-id-plugin.version>8.0.2</git-commit-id-plugin.version>
+        <testcontainers.version>1.20.1</testcontainers.version>
+    </properties>
+
+    <!-- Internal module BOM: every module version is inherited from the parent, one place to bump -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>co.tz.werelay</groupId>
+                <artifactId>app-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>co.tz.werelay</groupId>
+                <artifactId>app-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>co.tz.werelay</groupId>
+                <artifactId>app-persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>co.tz.werelay</groupId>
+                <artifactId>app-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>co.tz.werelay</groupId>
+                <artifactId>app-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>co.tz.werelay</groupId>
+                <artifactId>app-config</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-spring-boot3</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-encoder.version}</version>
+            </dependency>
+
+            <!-- Managed centrally so any module (app-persistence, app-boot, etc.) can add
+                 org.testcontainers:* as a plain test-scope dependency without repeating a version. -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Embeds git commit hash / branch / build time into the JAR manifest.
+                     Exposed via GET /actuator/info at runtime — see README #versioning. -->
+                <plugin>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <version>${git-commit-id-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>get-the-git-infos</id>
+                            <goals>
+                                <goal>revision</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                        <includeOnlyProperties>
+                            <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
+                            <includeOnlyProperty>^git.branch$</includeOnlyProperty>
+                        </includeOnlyProperties>
+                        <!-- Don't hard-fail the whole build just because .git isn't present
+                             (fresh unzip before `git init`, a shallow/no-history checkout, or a
+                             Docker build context that doesn't include .git). /actuator/info will
+                             just omit git fields in that case instead of blocking the build. -->
+                        <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                        <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

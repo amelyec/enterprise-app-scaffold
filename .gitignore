@@ -1,0 +1,1 @@
+# Build outputs\n**/target/\n**/build/\n\n# Compiled artifacts\n*.class\n*.jar\n*.war\n*.ear\n\n# IDE/editor noise\n.idea/\n.vscode/\n.DS_Store\n
