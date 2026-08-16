@@ -13,3 +13,4 @@
 .vscode/
 .DS_Store
 
+app-boot/src/main/resources/application-local.yml.override
